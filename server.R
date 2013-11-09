@@ -6,8 +6,14 @@ source('functions.R')
 # imported.data <- read.xls("cpi.xls", na.strings=c(".", "(*)"), blank.lines.skip=TRUE, fileEncoding="latin1")
 # b <- imported.data[1:(nrow(imported.data)-2),]
 
+# Previous two lines import Excel file as it is furnished by SPF Economie but importing is much slower, so
+# performance-wise it's better to convert to CSV. There are some small changes for adjustment.
+
 imported.data <- read.csv("cpi.csv", na.strings=c(".", "(*)"), blank.lines.skip=TRUE)
 b <- imported.data[1:(nrow(imported.data)-3),]
+
+# The code separates numerical and descriptional data which is only recombined back at the end with the long
+# format dataframe.
 
 code <- as.character(b[,1])
 full_code <- as.data.frame(t(simplify2array(strsplit(code, ".", fixed=TRUE))))
@@ -35,12 +41,15 @@ poids.table <- categories.top[,c(7,10)]; rownames(poids.table) <- NULL; colnames
 poids.table$Catégorie <- as.character(poids.table$Catégorie)
 poids.table[(nrow(poids.table)-1):nrow(poids.table),1] <- c("Indice des prix", "Indice santé")
 
+# This is small script to compute the date at which the pivot index was reached.
+
 indice.lisse <- rollmean(data.top[,"806"], 4, align="right")
 indice.pivot <- gen.indice.pivot(indice.lisse, init=104.1399115502, start=c(2006,4))
 depassement.table <- indice.pivot < indice.lisse & indice.pivot > lag(indice.lisse, -1)
 dates.depassement <- as.Date(depassement.table)[depassement.table] + 14
 
-# Define server logic required to plot various variables against mpg
+# This is the reactive part. No more changes on above during the session.
+
 shinyServer(function(input, output) {
 
   output$subcategories <- renderUI({ selectInput("subcategories", "ou bien une sous-catégorie", categories.top[1:(nrow(categories.top)-2),7]) })
@@ -124,15 +133,4 @@ shinyServer(function(input, output) {
     }
     
     print(p) })
-  
-  #output$testPlot <- renderPlot({ print(p + geom_bar(data = data.p[data.p$Lag == input$lags.choice,], aes(fill=Produit), stat="identity")) })
-  
-  # geom_line(data = ipc, aes(group=category, color="Indice des prix"), size=1.1) +
-  #  geom_line(data = sante, aes(group=category, color="Indice santé"), size=1.1)
-  
-  # Return the formula text for printing as a caption
 
-  # Generate a plot of the requested variable against mpg and only 
-  # include outliers if requested
-  # output$testPlot <- renderPlot({ print(p) })
-})
