@@ -1,9 +1,13 @@
 library(shiny)
-library(gdata); library(ggplot2); library(reshape2); library(scales); library(xts);
+library(ggplot2); library(reshape2); library(scales); library(xts);
+# library(gdata)
 source('functions.R')
 
-imported.data <- read.xls("cpi.xls", na.strings=c(".", "(*)"), blank.lines.skip=TRUE, fileEncoding="latin1")
-b <- imported.data[1:(nrow(imported.data)-2),]
+# imported.data <- read.xls("cpi.xls", na.strings=c(".", "(*)"), blank.lines.skip=TRUE, fileEncoding="latin1")
+# b <- imported.data[1:(nrow(imported.data)-2),]
+
+imported.data <- read.csv("cpi.csv", na.strings=c(".", "(*)"), blank.lines.skip=TRUE)
+b <- imported.data[1:(nrow(imported.data)-3),]
 
 code <- as.character(b[,1])
 full_code <- as.data.frame(t(simplify2array(strsplit(code, ".", fixed=TRUE))))
