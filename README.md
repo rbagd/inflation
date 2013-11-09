@@ -1,6 +1,4 @@
-Inflation
-=========
 
-This small project uses Shiny package for R to visualize Belgian inflation data. Project is hosted at
+This small project uses mostly `shiny` and `gpplot2` packages for `R` to visualize Belgian inflation data as a modest web application.
 
-http://spark.rstudio.com/rytis/inflation
+[Project hosting](http://spark.rstudio.com/rytis/inflation) is kindly provided by RStudio.
