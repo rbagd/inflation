@@ -72,7 +72,7 @@ shinyUI(pageWithSidebar(
         
     p("Les données utilisées proviennent du ", a("SPF Economie.", href="http://economie.fgov.be/fr/statistiques/chiffres/economie/prix_consommation/")),
     
-    p("Pour signaler des erreurs ou des suggestions:", br(), a(href="mailto:rytis.bagdziunas@uclouvain.be", "rytis.bagdziunas@uclouvain.be"))
+    p("Pour signaler des erreurs ou des suggestions:", br(), a(href="mailto:rytis.bagdziunas@uclouvain.be", "rytis.bagdziunas@uclouvain.be"), br(), "ou via", a(href="https://github.com/rbagd/inflation", "github."))
     
     ),
   
