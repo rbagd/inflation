@@ -37,8 +37,8 @@ data.sub.weighted <- weighted.dataset(data.sub.unweighted, categories.sub, selec
 data.sub.unweighted <- melt.dataset(data.sub.unweighted, categories.sub)
 data.sub.weighted <- melt.dataset(data.sub.weighted, categories.sub)
 
-poids.table <- categories.top[,c(7,10)]; rownames(poids.table) <- NULL; colnames(poids.table) <- c("Catégorie", "Poids")
-poids.table$Catégorie <- as.character(poids.table$Catégorie)
+poids.table <- categories.top[,c(7,10)]; rownames(poids.table) <- NULL; colnames(poids.table) <- c("Categorie", "Poids")
+poids.table$Catégorie <- as.character(poids.table$Categorie)
 poids.table[(nrow(poids.table)-1):nrow(poids.table),1] <- c("Indice des prix", "Indice santé")
 
 # This is small script to compute the date at which the pivot index was reached.
