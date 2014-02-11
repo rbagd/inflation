@@ -2,4 +2,4 @@ This small project uses mostly `shiny` and `gpplot2` packages for `R` to visuali
 
 [Project hosting](http://spark.rstudio.com/rytis/inflation) is kindly provided by RStudio.
 
-*UPDATE*: On February 11, 2014 the format of the Excel file changed with an update to the index. Source files have not been updated yet but will be soon. This is why public data should be in standard open formats. :(
+**UPDATE**: On February 11, 2014 the format of the Excel file changed with an update to the index. Source files have not been updated yet but will be soon. This is why public data should be in standard open formats. :(
