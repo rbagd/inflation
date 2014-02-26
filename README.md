@@ -6,4 +6,4 @@ This small project uses mostly `shiny` and `gpplot2` packages for `R` to visuali
 
 **UPDATE 2**: As per answer of SPF Economie, the only way to get the data now is a manual download of Excel/CSV files. Even though they use an OLAP server for data storage, there is apparently no possibility for now to have [XMLA](https://en.wikipedia.org/wiki/XML_for_Analysis) activated. Similar services may be available as of beSTAT 2.0 but no dates are known.
 
-Since the new index will have regular updates to the consumption bundle, I suspect that Excel may also change quite often which makes the previous method cumbersome and easily broken...
+Since the new index will have regular updates to the consumption bundle, I suspect that Excel file may also change quite often which makes the previous method cumbersome and easily broken. Fork and do whatever you wish but please do not count on future updates.
