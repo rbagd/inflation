@@ -61,27 +61,23 @@ weighted.dataset <- function(x, categories, selection="top")
   return(weighted.data)
 }
 
-melt.dataset <- function(x, categories)
+melt.dataset <- function(x, imported.data)
 {
   
   require(reshape)
-  #data.melt <- melt(cbind(data.frame(x), date=gsub("-15", "", as.Date(time(x), format="%Y-%m-%d") + 14)))
-  data.melt <- melt(cbind(data.frame(x), date=(as.Date(time(x), format="%Y-%m-%d") + 14)), id.vars="date")
-  data.melt$variable <- gsub("X", "", data.melt$variable)
+  data.melt <- melt(cbind(data.frame(x), date=(as.Date(time(x), format="%Y-%m-%d"))), id.vars="date")
+  lag.cat <- t(simplify2array(strsplit(as.character(data.melt$variable), ".", fixed=TRUE)))
+  lag.cat[,1] <- gsub("Lag", "", lag.cat[,1]); lag.cat <- as.data.frame(lag.cat)
   
-  produits <- unlist(strsplit(data.melt$variable, "Lag[[:digit:]]+|.rownames(categories)"))
-  produits <- gsub(".", "", produits[produits != ""], fixed=TRUE);
+  data.melt$Lag <- lag.cat[,1]
   
-  data.melt$Produit <- factor(produits)  
-  levels(data.melt$Produit) <- categories[levels(data.melt$Produit),7]
-  
-  lags <- unlist(strsplit(data.melt$variable, ".", fixed=TRUE))
-  lags <- gsub("Lag", "", lags[!(lags %in% rownames(categories))])
-  data.melt$Lag <- lags
+  lag.cat[,2] <- as.numeric(as.character(lag.cat[,2]))
+  data.melt$Produit <- rep(imported.data[unique(lag.cat[,2]), 'Dénomination'],
+                           aggregate(lag.cat[,2], list(lag.cat[,2]), length)$x)
   data.melt$variable <- NULL
   
-  data.melt$indices <- rep("Sous-indice", ncol(x))
-  data.melt$indices[data.melt$Produit %in% c("IPC-2004", "Indice santé-2004")] <- "Indice"
+  #data.melt$indices <- rep("Sous-indice", ncol(x))
+  #data.melt$indices[data.melt$Produit %in% c("IPC-2004", "Indice santé-2004")] <- "Indice"
   
   return(data.melt)
 }

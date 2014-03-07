@@ -15,27 +15,19 @@ imported.data <- read.csv("cpi.csv", na.strings=c(".", "(*)"), blank.lines.skip=
 top.levels <- which(imported.data$LVL != 3 & imported.data$LVL != 4)
 data <- imported.data[top.levels,]
 
-# The code separates numerical and descriptional data which is only recombined back at the end with the long
-# format dataframe.
-
-code <- as.character(b[,1])
-full_code <- as.data.frame(t(simplify2array(strsplit(code, ".", fixed=TRUE))))
-full_code <- cbind(full_code, b[,2:6])
-colnames(full_code) <- c("top", "sub1", "sub2", "sub3", "sub4", "naam", "nom", "pond2004", "pond2008", "pond2010")
-full_code[,8:10] <- apply(full_code[,8:10], 2, as.numeric)
-
 # Replace Dutch month abbreviations by English ones for better compatibility
 
 dutch_abbr <- c("mrt.", "mei.", "okt."); eng_abbr <- c("mar.", "may.", "oct.")
 for (i in 1:3) { colnames(data) <- gsub(dutch_abbr[i], eng_abbr[i], colnames(data)) }
 
 time.data <- data[,9:ncol(data)]
-time.data <- as.xts(t(time.data), order.by=as.Date(paste0("15.", colnames(time.data)), format='%d.%b.%Y'))
+time.data <- as.xts(t(time.data), order.by=as.Date(paste0("15.", colnames(time.data)), format='%d.%b.%y'))
 
-
+data.supra <- time.data[,which(data$LVL == 0)]
 data.top <- time.data[,which(data$LVL == 1)]
 data.sub <- time.data[,which(data$LVL == 2)]
 
+data.supra.unweighted <- lagged.dataset(data.supra)
 data.top.unweighted <- lagged.dataset(data.top)
 data.sub.unweighted <- lagged.dataset(data.sub)
 
@@ -49,31 +41,39 @@ parent <- with(coicop, rep(aggregate(Pond.2014, list(level=top), sum)$x,
                  aggregate(Pond.2014, list(level=top), length)$x))
 rel.sub.weights <- coicop$Pond.2014/parent
 
+
+data.supra.weighted <- data.supra.unweighted * data[which(data$LVL == 0),'Pond.2014']/1000
 data.top.weighted <- data.top.unweighted * top.weights/1000
 data.sub.weighted <- data.sub.unweighted * rel.sub.weights
 
-data.top.unweighted <- melt.dataset(data.top.unweighted, categories.top)
-data.top.weighted <- melt.dataset(data.top.weighted, categories.top)
+data.supra.unweighted <- melt.dataset(data.supra.unweighted, imported.data)
+data.supra.weighted <- melt.dataset(data.supra.weighted, imported.data)
 
-data.sub.unweighted <- melt.dataset(data.sub.unweighted, categories.sub)
-data.sub.weighted <- melt.dataset(data.sub.weighted, categories.sub)
+data.top.unweighted <- melt.dataset(data.top.unweighted, imported.data)
+data.top.weighted <- melt.dataset(data.top.weighted, imported.data)
 
-poids.table <- categories.top[,c(7,10)]; rownames(poids.table) <- NULL; colnames(poids.table) <- c("Categorie", "Poids")
-poids.table$Categorie <- as.character(poids.table$Categorie)
-poids.table[(nrow(poids.table)-1):nrow(poids.table),1] <- c("Indice des prix", "Indice santé")
+data.sub.unweighted <- melt.dataset(data.sub.unweighted, imported.data)
+data.sub.weighted <- melt.dataset(data.sub.weighted, imported.data)
+
+poids.table <- data[which(data$LVL == 1), c('Dénomination', 'Pond.2014')];
+rownames(poids.table) <- NULL; colnames(poids.table) <- c("Categorie", "Poids")
+#poids.table$Categorie <- as.character(poids.table$Categorie)
+#poids.table[(nrow(poids.table)-1):nrow(poids.table),1] <- c("Indice des prix", "Indice santé")
 
 # This is small script to compute the date at which the pivot index was reached.
 
-indice.lisse <- rollmean(data.top[,"806"], 4, align="right")
-indice.pivot <- gen.indice.pivot(indice.lisse, init=104.1399115502, start=c(2006,4))
-depassement.table <- indice.pivot < indice.lisse & indice.pivot > lag(indice.lisse, -1)
-dates.depassement <- as.Date(depassement.table)[depassement.table] + 14
+#indice.lisse <- rollmean(data[which(data$Dénomination == 'Indice santé'),], 4, align="right")
+#indice.pivot <- gen.indice.pivot(indice.lisse, init=104.1399115502, start=c(2006,4))
+#depassement.table <- indice.pivot < indice.lisse & indice.pivot > lag(indice.lisse, -1)
+#dates.depassement <- as.Date(depassement.table)[depassement.table] + 14
 
 # This is the reactive part. No more changes on above during the session.
 
 shinyServer(function(input, output) {
 
-  output$subcategories <- renderUI({ selectInput("subcategories", "ou bien une sous-catégorie", categories.top[1:(nrow(categories.top)-2),7]) })
+  output$subcategories <- renderUI({ selectInput("subcategories",
+                                                 "ou bien une sous-catégorie",
+                                                 data[which(data$LVL==1),'Dénomination']) })
   
   output$view <- renderTable({ poids.table })
   
@@ -84,9 +84,10 @@ shinyServer(function(input, output) {
       if (input$category.choice == TRUE) { data.plot <- data.top.weighted }
       else
       {
-        sub.level <- as.numeric(categories.top[categories.top$nom == input$subcategories,][1])
-        sub.category <- categories.sub[as.numeric(categories.sub$top) == sub.level, ]
-        data.plot <- data.sub.weighted[data.sub.weighted$Produit %in% c(as.character(sub.category[,7]), "IPC-2004", "Indice santé-2004"), ]
+        tmp <- as.character(data[which(data$'Dénomination' == input$subcategories),'COICOP'])
+        sub.categories <- as.character(data[which(substr(as.character(data$'COICOP'), 1, nchar(tmp)) == tmp ),
+                                            'Dénomination'])
+        data.plot <- data.sub.weighted[which(data.sub.weighted$Produit %in% sub.categories),]
       }
     }
     else
@@ -94,9 +95,10 @@ shinyServer(function(input, output) {
       if (input$category.choice == TRUE) { data.plot <- data.top.unweighted }
       else
       {
-        sub.level <- as.numeric(categories.top[categories.top$nom == input$subcategories,][1])
-        sub.category <- categories.sub[as.numeric(categories.sub$top) == sub.level, ]
-        data.plot <- data.sub.unweighted[data.sub.unweighted$Produit %in% c(as.character(sub.category[,7]), "IPC-2004", "Indice santé-2004"), ]
+        tmp <- as.character(data[which(data$'Dénomination' == input$subcategories),'COICOP'])
+        sub.categories <- as.character(data[which(substr(as.character(data$'COICOP'), 1, nchar(tmp)) == tmp ),
+                                            'Dénomination'])
+        data.plot <- data.sub.weighted[which(data.sub.weighted$Produit %in% sub.categories),]
       }
     }
       
@@ -116,8 +118,8 @@ shinyServer(function(input, output) {
     end.date.plot <- which(as.Date(paste0(window.end.char, "-15")) >= data.plot$date, arr.ind=TRUE)
     span <- intersect(start.date.plot, end.date.plot)
     
-    data.p <- subset(data.plot[span,], data.plot[span,]$value >= 0 & indices == "Sous-indice")
-    data.n <- subset(data.plot[span,], data.plot[span,]$value < 0 & indices == "Sous-indice")
+    data.p <- subset(data.plot[span,], data.plot[span,]$value >= 0) # & indices == "Sous-indice")
+    data.n <- subset(data.plot[span,], data.plot[span,]$value < 0) # & indices == "Sous-indice")
     ipc <- subset(data.plot[span,], data.plot[span,]$Produit == "IPC-2004")
     sante <- subset(data.plot[span,], data.plot[span,]$Produit == "Indice santé-2004")
     
