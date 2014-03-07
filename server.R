@@ -9,8 +9,11 @@ source('functions.R')
 # Previous two lines import Excel file as it is furnished by SPF Economie but importing is much slower, so
 # performance-wise it's better to convert to CSV. There are some small changes for adjustment.
 
-imported.data <- read.csv("cpi.csv", na.strings=c(".", "(*)"), blank.lines.skip=TRUE)
-b <- imported.data[1:(nrow(imported.data)-3),]
+imported.data <- read.csv("cpi.csv", na.strings=c(".", "(*)"), blank.lines.skip=TRUE,
+                          fileEncoding='latin1')
+
+top.levels <- which(imported.data$LVL != 3 & imported.data$LVL != 4)
+data <- imported.data[top.levels,]
 
 # The code separates numerical and descriptional data which is only recombined back at the end with the long
 # format dataframe.
@@ -21,13 +24,36 @@ full_code <- cbind(full_code, b[,2:6])
 colnames(full_code) <- c("top", "sub1", "sub2", "sub3", "sub4", "naam", "nom", "pond2004", "pond2008", "pond2010")
 full_code[,8:10] <- apply(full_code[,8:10], 2, as.numeric)
 
-data.top <- select.dataset(b, full_code, "top")$data
-categories.top <- select.dataset(b, full_code, "top")$categories
+# Replace Dutch month abbreviations by English ones for better compatibility
 
-data.sub <- select.dataset(b, full_code, "sub")$data
-categories.sub <- select.dataset(b, full_code, "sub")$categories
+dutch_abbr <- c("mrt.", "mei.", "okt."); eng_abbr <- c("mar.", "may.", "oct.")
+for (i in 1:3) { colnames(data) <- gsub(dutch_abbr[i], eng_abbr[i], colnames(data)) }
+
+time.data <- data[,9:ncol(data)]
+time.data <- as.xts(t(time.data), order.by=as.Date(paste0("15.", colnames(time.data)), format='%d.%b.%Y'))
+
+
+data.top <- time.data[,which(data$LVL == 1)]
+data.sub <- time.data[,which(data$LVL == 2)]
 
 data.top.unweighted <- lagged.dataset(data.top)
+data.sub.unweighted <- lagged.dataset(data.sub)
+
+a <- aggregate(test$Pond.2014, list(level=test$V1), sum)
+b <- aggregate(test$Pond.2014, list(level=test$V1), length)
+
+
+top.weights <- data[which(data$LVL == 1), "Pond.2014"]
+
+coicop <- data[which(data$LVL == 2), c("COICOP", "Pond.2014")]
+coicop[,3:4] <- as.data.frame(t(simplify2array(strsplit(as.character(coicop$COICOP), ".", fixed=TRUE))))
+names(coicop)[3:4] <- c("top", "sub")
+
+parent <- with(coicop, rep(aggregate(Pond.2014, list(level=top), sum)$x,
+                 aggregate(Pond.2014, list(level=top), length)$x))
+
+sub.weights <- cbind(weight=coicop$Pond.2014, parent)
+
 data.top.weighted <- weighted.dataset(data.top.unweighted, categories.top)
 data.top.unweighted <- melt.dataset(data.top.unweighted, categories.top)
 data.top.weighted <- melt.dataset(data.top.weighted, categories.top)
