@@ -39,10 +39,6 @@ data.sub <- time.data[,which(data$LVL == 2)]
 data.top.unweighted <- lagged.dataset(data.top)
 data.sub.unweighted <- lagged.dataset(data.sub)
 
-a <- aggregate(test$Pond.2014, list(level=test$V1), sum)
-b <- aggregate(test$Pond.2014, list(level=test$V1), length)
-
-
 top.weights <- data[which(data$LVL == 1), "Pond.2014"]
 
 coicop <- data[which(data$LVL == 2), c("COICOP", "Pond.2014")]
@@ -51,15 +47,14 @@ names(coicop)[3:4] <- c("top", "sub")
 
 parent <- with(coicop, rep(aggregate(Pond.2014, list(level=top), sum)$x,
                  aggregate(Pond.2014, list(level=top), length)$x))
+rel.sub.weights <- coicop$Pond.2014/parent
 
-sub.weights <- cbind(weight=coicop$Pond.2014, parent)
+data.top.weighted <- data.top.unweighted * top.weights/1000
+data.sub.weighted <- data.sub.unweighted * rel.sub.weights
 
-data.top.weighted <- weighted.dataset(data.top.unweighted, categories.top)
 data.top.unweighted <- melt.dataset(data.top.unweighted, categories.top)
 data.top.weighted <- melt.dataset(data.top.weighted, categories.top)
 
-data.sub.unweighted <- lagged.dataset(data.sub)
-data.sub.weighted <- weighted.dataset(data.sub.unweighted, categories.sub, selection="sub")
 data.sub.unweighted <- melt.dataset(data.sub.unweighted, categories.sub)
 data.sub.weighted <- melt.dataset(data.sub.weighted, categories.sub)
 
