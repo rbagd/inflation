@@ -113,19 +113,21 @@ shinyServer(function(input, output) {
     
     if (input$lags.choice == "Annuelle") {lags.choice <- 12}
     if (input$lags.choice == "Mensuelle") {lags.choice <- 1}
-    if (input$lags.choice == "Indices") {lags.choice <- 0}
+#    if (input$lags.choice == "Indices") {lags.choice <- 0}
     
     data.plot <- subset(data.plot, date >= window.start.char & date <= window.end.char & Lag == lags.choice)
     
     x_labels <- gsub("-15", "", unique(as.character(data.plot$date)))
     if (length(x_labels) > 13) { x_labels[-seq(1,length(x_labels), 3)] <- "" }
 
+    coloring <- hsv(seq(0,1,length.out=15),0.9,0.6)
+
     if(input$supra == TRUE)
     {
       data.supra.plot2 <- subset(data.supra.weighted, date >= window.start.char & date <= window.end.char & Lag == lags.choice
                                  & !(Produit %in% c("Indice santé", "Indice des prix à la consommation")))
       foo <- barchart(value ~ date, stack=TRUE, data=data.supra.plot2, groups=Produit, horiz=FALSE,
-                      par.settings = list(superpose.polygon = list(col=sample(colors(), 20))),
+                      par.settings = list(superpose.polygon = list(col=coloring)),
                       auto.key=list(space="right", rectangles=TRUE, points=FALSE),
                       scales=list(abbreviate=FALSE, tick.number=10, x=list(labels=x_labels)), ylab="Value", xlab="Month",
                       panel = function(y, x, ...){
@@ -136,7 +138,7 @@ shinyServer(function(input, output) {
     else
     {
       foo <- barchart(value ~ date, stack=TRUE, data=data.plot, groups=Produit, horiz=FALSE,
-                      par.settings = list(superpose.polygon = list(col=sample(colors(), 20))),
+                      par.settings = list(superpose.polygon = list(col=coloring)),
                       auto.key=list(space="right", rectangles=TRUE, points=FALSE),
                       scales=list(abbreviate=FALSE, tick.number=10, x=list(labels=x_labels)), ylab="Value", xlab="Month",
                       panel = function(y, x, ...){
