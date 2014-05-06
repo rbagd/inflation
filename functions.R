@@ -1,30 +1,3 @@
-select.dataset <- function(all.data, categories, selection = "top")
-{
-  if (selection == "top")
-  {
-    top.test.0 <- categories[,c(2:5)] != "0"; top.test.00 <- categories[,c(2:5)] != "00";
-    category.index <- which(rowSums(top.test.0 + top.test.00) == 4)
-  }
-  if (selection == "sub")
-  {
-    sub.test.0 <- categories[,c(2:5)] != "0"; sub.test.00 <- categories[,c(2:5)] != "00";
-    category.index <- which(rowSums(sub.test.0 + sub.test.00) == 5)
-  }
-  data <- all.data[category.index,7:ncol(all.data)]; colnames(data) <- gsub("X", "", colnames(data))
-  dates <- as.Date(paste("15.", colnames(data), sep=""), format="%d.%m.%Y"); start.date <- c(); end.date <- c();
-  start.date[1] <- as.numeric(format(dates[1], format="%Y"));
-  start.date[2] <- as.numeric(format(dates[1], format="%m"));
-  end.date[1] <- as.numeric(format(dates[length(dates)], format="%Y"));
-  end.date[2] <- as.numeric(format(dates[length(dates)], format="%m"));
-  indices <- all.data[c(805,806), 7:ncol(all.data)]; colnames(indices) <- colnames(data)
-  data <- rbind(data, indices);
-  
-  data <- ts(t(data), start=start.date, end=end.date, frequency=12)
-  categories <- categories[c(category.index,805,806),]
-  
-  return(list("data"=data, "categories"=categories))
-} 
-
 lagged.dataset <- function(x, lags=c(1,12))
 {
   require(xts)
@@ -72,10 +45,15 @@ melt.dataset <- function(x, imported.data)
   data.melt$Lag <- lag.cat[,1]
   
   lag.cat[,2] <- as.numeric(as.character(lag.cat[,2]))
-  data.melt$Produit <- rep(imported.data[unique(lag.cat[,2]), 'Dénomination'],
-                           aggregate(lag.cat[,2], list(lag.cat[,2]), length)$x)
-  data.melt$variable <- NULL
+  n_lags <- length(unique(lag.cat[,1]))
   
+  data.melt$Produit <- rep((rep(as.character(imported.data[unique(lag.cat[,2]), 'Dénomination']), 
+                                (aggregate(lag.cat[,2], list(lag.cat[,2]), length)$x)/n_lags)), n_lags)
+  
+  #data.melt$Produit <- rep(as.character(imported.data[unique(lag.cat[,2]), 'Dénomination']), 
+  #                         aggregate(lag.cat[,2], list(lag.cat[,2]), length)$x)
+  data.melt$Produit <- as.character(data.melt$Produit)
+  data.melt$variable <- NULL
   #data.melt$indices <- rep("Sous-indice", ncol(x))
   #data.melt$indices[data.melt$Produit %in% c("IPC-2004", "Indice santé-2004")] <- "Indice"
   

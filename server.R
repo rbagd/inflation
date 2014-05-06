@@ -1,7 +1,11 @@
 library(shiny)
 library(ggplot2); library(reshape2); library(scales); library(xts);
 # library(gdata)
+rm(list=ls())
 source('functions.R')
+
+library(lattice)
+library(latticeExtra)
 
 # imported.data <- read.xls("cpi.xls", na.strings=c(".", "(*)"), blank.lines.skip=TRUE, fileEncoding="latin1")
 # b <- imported.data[1:(nrow(imported.data)-2),]
@@ -57,6 +61,24 @@ data.sub.weighted <- melt.dataset(data.sub.weighted, imported.data)
 
 poids.table <- data[which(data$LVL == 1), c('Dénomination', 'Pond.2014')];
 rownames(poids.table) <- NULL; colnames(poids.table) <- c("Categorie", "Poids")
+# 
+# begin <- "2010-07-01"
+# end <- "2011-06-01"
+# plot.data <- subset(data.top.weighted, Lag == 12 & date > begin & date < end)
+# 
+# plot.data$date
+# 
+# foo <- barchart(value ~ date, stack=TRUE, data=plot.data, groups=Produit, horiz=FALSE,
+#          auto.key=list(space="top", rectangles=TRUE, points=FALSE),
+#          scales=list(abbreviate=TRUE, tick.number=10, rot=30), ylab="Value", xlab="Month",
+#          par.settings = simpleTheme(col = colors()),
+#          panel = function(y, x, ...){
+#            panel.grid(h = -1, v = -1, col = "gray", lty=2, lwd=1)
+#            panel.barchart(x, y, ...)
+# #           panel.lmline(x, y, type="l")
+#          })
+
+
 #poids.table$Categorie <- as.character(poids.table$Categorie)
 #poids.table[(nrow(poids.table)-1):nrow(poids.table),1] <- c("Indice des prix", "Indice santé")
 
@@ -86,7 +108,7 @@ shinyServer(function(input, output) {
       {
         tmp <- as.character(data[which(data$'Dénomination' == input$subcategories),'COICOP'])
         sub.categories <- as.character(data[which(substr(as.character(data$'COICOP'), 1, nchar(tmp)) == tmp ),
-                                            'Dénomination'])
+                                            'Dénomination'])[-1]
         data.plot <- data.sub.weighted[which(data.sub.weighted$Produit %in% sub.categories),]
       }
     }
@@ -101,60 +123,87 @@ shinyServer(function(input, output) {
         data.plot <- data.sub.weighted[which(data.sub.weighted$Produit %in% sub.categories),]
       }
     }
-      
-    p <- ggplot(data = data.plot, aes(x=date, y=value)) + labs(x="", y = "Pourcentage", title="") + 
-      theme(legend.position="right", axis.text.x = element_text(angle = 30, hjust = 1)) +
-      scale_fill_discrete(name = "Gamme de produits") +
-      scale_color_manual(name = "Indices", values=c("black","red")) +
-      scale_x_date(labels = date_format("%Y-%m"), breaks="1 month")
     
     window.start <- c(input$window.start.year,input$window.start.month)
-    window.start.char <- paste(window.start[1], window.start[2], sep="-")
+    window.start.char <- paste0(paste(window.start[1], window.start[2], sep="-"), "-15")
     
     window.end <- c(input$window.end.year, input$window.end.month)
-    window.end.char <- paste(window.end[1], window.end[2], sep="-")
+    window.end.char <- paste0(paste(window.end[1], window.end[2], sep="-"), "-15")
+#      start.date.plot <- which(as.Date(paste0(window.start.char, "-15")) <= data.plot$date, arr.ind=TRUE)
+#     end.date.plot <- which(as.Date(paste0(window.end.char, "-15")) >= data.plot$date, arr.ind=TRUE)
+#     span <- intersect(start.date.plot, end.date.plot)
     
-    start.date.plot <- which(as.Date(paste0(window.start.char, "-15")) <= data.plot$date, arr.ind=TRUE)
-    end.date.plot <- which(as.Date(paste0(window.end.char, "-15")) >= data.plot$date, arr.ind=TRUE)
-    span <- intersect(start.date.plot, end.date.plot)
+    # add <- subset(data.supra.weighted, Produit == "Loyers" & Lag == 12 & date > begin & date < end)
+    # foo + layer(panel.lines(y=value, x=1:nrow(add), col="black", lwd=2, lty=1), data=add)
     
-    data.p <- subset(data.plot[span,], data.plot[span,]$value >= 0) # & indices == "Sous-indice")
-    data.n <- subset(data.plot[span,], data.plot[span,]$value < 0) # & indices == "Sous-indice")
-    ipc <- subset(data.plot[span,], data.plot[span,]$Produit == "IPC-2004")
-    sante <- subset(data.plot[span,], data.plot[span,]$Produit == "Indice santé-2004")
     
-    if(length(sante$date[sante$Lag == 0]) > 13) { p <- p + scale_x_date(labels = date_format("%Y-%m"), breaks="3 months")}
+    
+    
+    
+#    ipc <- subset(data.plot[span,], data.plot[span,]$Produit == "IPC-2004")
+#    sante <- subset(data.plot[span,], data.plot[span,]$Produit == "Indice santé-2004")
+
+    
+ #   if(length(sante$date[sante$Lag == 0]) > 13) { p <- p + scale_x_date(labels = date_format("%Y-%m"), breaks="3 months")}
     
     if (input$lags.choice == "Annuelle") {lags.choice <- 12}
     if (input$lags.choice == "Mensuelle") {lags.choice <- 1}
     if (input$lags.choice == "Indices") {lags.choice <- 0}
     
-    if (dim(data.p[data.p$Lag == lags.choice,])[1] > 0)
-    {
-      if (input$lags.choice != "Indices")
-      { p <- p + geom_bar(data = data.p[data.p$Lag == lags.choice,], aes(fill=Produit), stat="identity") }
-      else
-      { p <- p + geom_bar(data = data.p[data.p$Lag == lags.choice,], aes(fill=Produit), stat="identity", position="dodge") + labs(y = "Valeur de l'indice") }  
-    }
-    
-    if (dim(data.n[data.n$Lag == lags.choice,])[1] > 0)
-    {p <- p + geom_bar(data = data.n[data.n$Lag == lags.choice,], aes(fill=Produit), stat="identity") }
-    
-    if (input$sante == TRUE)
-    {
-      p <- p + geom_line(data = sante[sante$Lag == lags.choice,], aes(group=indices, color="Indice santé"), size=1.1)
-    }
-    if (input$ipc == TRUE)
-    {
-      p <- p + geom_line(data = ipc[ipc$Lag == lags.choice,], aes(group=indices, color="Indice des prix"), size=1.1)
-    }
-    if (input$pivot == TRUE)
-    {
-      vis.depassement <- dates.depassement[dates.depassement %in% data.plot[span,]$date]
-      if (length(vis.depassement) > 0)
-      { p <- p + geom_vline(xintercept=as.numeric(vis.depassement), linetype=2, alpha=0.4) }
-    }
-    
-    print(p) })
+    data.plot <- subset(data.plot, date >= window.start.char & date <= window.end.char & Lag == lags.choice)
+    data.supra.plot <- subset(data.supra.unweighted, date >= window.start.char & date <= window.end.char & Lag == lags.choice)
+
+    foo <- barchart(value ~ date, stack=TRUE, data=data.plot, groups=Produit, horiz=FALSE,
+                auto.key=list(space="right", rectangles=TRUE, points=FALSE),
+                scales=list(abbreviate=TRUE, tick.number=10), ylab="Value", xlab="Month",
+    #            par.settings = simpleTheme(col = colors()),
+                panel = function(y, x, ...){
+                  panel.grid(h = -1, v = -1, col = "gray", lty=2, lwd=1)
+                  panel.barchart(x, y, ...)
+                  #           panel.lmline(x, y, type="l")
+                })
+
+   if (input$sante == TRUE)
+   {
+     sub.plot.sante <- subset(data.supra.plot, Produit == "Indice santé")
+     print(sub.plot.sante)
+     foo <- foo + layer(panel.lines(y=value, x=1:15, col="darkred", lwd=2), data=sub.plot.sante)     
+   }
+   if (input$ipc == TRUE)
+   {
+     sub.plot.ipc <- subset(data.supra.plot, Produit == "Indice des prix à la consommation")
+     foo <- foo + layer(panel.lines(y=value, x=1:(nrow(sub.plot.ipc)+2), col="steelblue", lwd=2), data=sub.plot.ipc)
+   }
+
+
+# 
+# 
+#     if (dim(data.p[data.p$Lag == lags.choice,])[1] > 0)
+#     {
+#       if (input$lags.choice != "Indices")
+#       { p <- p + geom_bar(data = data.p[data.p$Lag == lags.choice,], aes(fill=Produit), stat="identity") }
+#       else
+#       { p <- p + geom_bar(data = data.p[data.p$Lag == lags.choice,], aes(fill=Produit), stat="identity", position="dodge") + labs(y = "Valeur de l'indice") }  
+#     }
+#     
+#    if (dim(data.n[data.n$Lag == lags.choice,])[1] > 0)
+#    {p <- p + geom_bar(data = data.n[data.n$Lag == lags.choice,], aes(fill=Produit), stat="identity") }
+# #     
+# #     if (input$sante == TRUE)
+# #     {
+# #       #p <- p + geom_line(data = sante[sante$Lag == lags.choice,], aes(group=indices, color="Indice santé"), size=1.1)
+# #     }
+# #     if (input$ipc == TRUE)
+# #     {
+# #       #p <- p + geom_line(data = ipc[ipc$Lag == lags.choice,], aes(group=indices, color="Indice des prix"), size=1.1)
+# #     }
+# #     if (input$pivot == TRUE)
+# #     {
+# #       vis.depassement <- dates.depassement[dates.depassement %in% data.plot[span,]$date]
+# #       if (length(vis.depassement) > 0)
+# #       { p <- p + geom_vline(xintercept=as.numeric(vis.depassement), linetype=2, alpha=0.4) }
+# #     }
+# #     
+    print(foo) })
 })
 
