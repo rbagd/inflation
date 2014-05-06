@@ -13,27 +13,6 @@ lagged.dataset <- function(x, lags=c(1,12))
   return(x)
 }
 
-weighted.dataset <- function(x, categories, selection="top")
-{
-  rows <- nrow(x); cols <- ncol(x); elements <- length(categories[,10])
-  if (selection == "top")
-  {
-    weights <- matrix(rep(matrix(rep(t(categories[,10]), rows), byrow=TRUE, nrow=rows), cols/elements), ncol=cols, byrow=FALSE)/1000
-  }
-  else
-  {
-    top.category.weights <- as.vector(by(categories$pond2010, categories$top, sum))
-    sub.count <- as.vector(table(categories$top))
-    replicate.top <- c();
-    for (i in 1:length(top.category.weights)) { replicate.top <- c(replicate.top,rep(top.category.weights[i], sub.count[i])) }  
-    weights.nom <- matrix(rep(t(categories$pond2010), rows), nrow=rows, byrow=TRUE)
-    weights.denom <- matrix(rep(t(replicate.top), rows), nrow=rows, byrow=TRUE)
-    weights <- matrix(rep(weights.nom/weights.denom, ncol(x)/ncol(weights.nom)), nrow=rows, byrow=FALSE)
-  }
-  weighted.data <- x * weights
-  return(weighted.data)
-}
-
 melt.dataset <- function(x, imported.data)
 {
   

@@ -16,7 +16,7 @@ shinyUI(pageWithSidebar(
     
     selectInput(inputId = "lags.choice",
                 label = "Type de variation des prix",
-                choices = c("Annuelle", "Mensuelle", "Indices"),
+                choices = c("Annuelle", "Mensuelle"), # "Indices"),
                 selected = "Annuelle"),
     
     selectInput(inputId = "window.start.year",

@@ -47,12 +47,13 @@ parent <- with(coicop, rep(aggregate(Pond.2014, list(level=top), sum)$x,
                  aggregate(Pond.2014, list(level=top), length)$x))
 rel.sub.weights <- coicop$Pond.2014/parent
 
-data.supra.weighted <- data.supra.unweighted * data[which(data$LVL == 0),'Pond.2014']/1000
-data.top.weighted <- data.top.unweighted * top.weights/1000
-data.sub.weighted <- data.sub.unweighted * rel.sub.weights
+#data.supra.weighted <- data.supra.unweighted * data[which(data$LVL == 0),'Pond.2014']/1000
+# data.top.weighted <- data.top.unweighted * top.weights/1000
+data.top.weighted <- as.xts(t(apply(data.top.unweighted, 1, "*", top.weights/1000)))
+data.sub.weighted <- as.xts(t(apply(data.sub.unweighted, 1, "*", rel.sub.weights)))
 
 data.supra.unweighted <- melt.dataset(data.supra.unweighted, imported.data)
-data.supra.weighted <- melt.dataset(data.supra.weighted, imported.data)
+#data.supra.weighted <- melt.dataset(data.supra.weighted, imported.data)
 
 data.top.unweighted <- melt.dataset(data.top.unweighted, imported.data)
 data.top.weighted <- melt.dataset(data.top.weighted, imported.data)
