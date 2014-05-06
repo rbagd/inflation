@@ -55,6 +55,20 @@ shinyUI(pageWithSidebar(
                   label = strong("Dépassements de l'indice pivot"),
                   value = FALSE),
     
+    p("Les quatre groupe ci-dessus sont des groupes de référence:"),
+    
+    checkboxInput(inputId = "alimentaires",
+                  label = strong("Produits alimentaires"),
+                  value = FALSE),
+    checkboxInput(inputId = "nonalimentaires",
+                  label = strong("Produits non-alimentaires"),
+                  value = FALSE),
+    checkboxInput(inputId = "services",
+                  label = strong("Services"),
+                  value = FALSE),
+    checkboxInput(inputId = "loyers",
+                  label = strong("Loyers"),
+                  value = FALSE),
     br(),
     
     p("Le SPF Economie publie mensuellement la valeur de l'indice des prix
