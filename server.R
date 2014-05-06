@@ -1,11 +1,14 @@
 library(shiny)
-library(ggplot2); library(reshape2); library(scales); library(xts);
+#library(ggplot2); library(reshape2); library(scales); library(xts);
 # library(gdata)
 rm(list=ls())
 source('functions.R')
 
+library(xts)
 library(lattice)
 library(latticeExtra)
+library(reshape)
+library(plyr)
 
 # imported.data <- read.xls("cpi.xls", na.strings=c(".", "(*)"), blank.lines.skip=TRUE, fileEncoding="latin1")
 # b <- imported.data[1:(nrow(imported.data)-2),]
@@ -45,7 +48,6 @@ parent <- with(coicop, rep(aggregate(Pond.2014, list(level=top), sum)$x,
                  aggregate(Pond.2014, list(level=top), length)$x))
 rel.sub.weights <- coicop$Pond.2014/parent
 
-
 data.supra.weighted <- data.supra.unweighted * data[which(data$LVL == 0),'Pond.2014']/1000
 data.top.weighted <- data.top.unweighted * top.weights/1000
 data.sub.weighted <- data.sub.unweighted * rel.sub.weights
@@ -61,33 +63,13 @@ data.sub.weighted <- melt.dataset(data.sub.weighted, imported.data)
 
 poids.table <- data[which(data$LVL == 1), c('Dénomination', 'Pond.2014')];
 rownames(poids.table) <- NULL; colnames(poids.table) <- c("Categorie", "Poids")
-# 
-# begin <- "2010-07-01"
-# end <- "2011-06-01"
-# plot.data <- subset(data.top.weighted, Lag == 12 & date > begin & date < end)
-# 
-# plot.data$date
-# 
-# foo <- barchart(value ~ date, stack=TRUE, data=plot.data, groups=Produit, horiz=FALSE,
-#          auto.key=list(space="top", rectangles=TRUE, points=FALSE),
-#          scales=list(abbreviate=TRUE, tick.number=10, rot=30), ylab="Value", xlab="Month",
-#          par.settings = simpleTheme(col = colors()),
-#          panel = function(y, x, ...){
-#            panel.grid(h = -1, v = -1, col = "gray", lty=2, lwd=1)
-#            panel.barchart(x, y, ...)
-# #           panel.lmline(x, y, type="l")
-#          })
-
-
-#poids.table$Categorie <- as.character(poids.table$Categorie)
-#poids.table[(nrow(poids.table)-1):nrow(poids.table),1] <- c("Indice des prix", "Indice santé")
 
 # This is small script to compute the date at which the pivot index was reached.
 
-#indice.lisse <- rollmean(data[which(data$Dénomination == 'Indice santé'),], 4, align="right")
-#indice.pivot <- gen.indice.pivot(indice.lisse, init=104.1399115502, start=c(2006,4))
-#depassement.table <- indice.pivot < indice.lisse & indice.pivot > lag(indice.lisse, -1)
-#dates.depassement <- as.Date(depassement.table)[depassement.table] + 14
+indice.lisse <- ts(rollmean(time.data[,2], 4, align="right"), freq=12, start=c(2006,4))
+indice.pivot <- gen.indice.pivot(indice.lisse, init=86.2196, start=c(2006,4))
+depassement.table <- indice.pivot < indice.lisse & indice.pivot > lag(indice.lisse, -1)
+dates.depassement <- as.Date(depassement.table)[depassement.table] + 14
 
 # This is the reactive part. No more changes on above during the session.
 

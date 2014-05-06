@@ -60,7 +60,7 @@ melt.dataset <- function(x, imported.data)
   return(data.melt)
 }
 
-gen.indice.pivot <- function(indice.lisse, init=104.1399115502, start=c(2006,4))
+gen.indice.pivot <- function(indice.lisse, init=86.2196, start=c(2006,4))
 {
   indice.pivot <- rep(NA, length(indice.lisse)); indice.pivot[1] <- init;
   for (i in 1:(length(indice.lisse)-1))
