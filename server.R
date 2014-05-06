@@ -124,7 +124,7 @@ shinyServer(function(input, output) {
     {
       data.supra.plot2 <- subset(data.supra.weighted, date >= window.start.char & date <= window.end.char & Lag == lags.choice
                                  & !(Produit %in% c("Indice santé", "Indice des prix à la consommation")))
-      coloring <- hsv(seq(0,1,length.out=length(unique(data.supra.plot2$Produit))),0.9,0.6)
+      coloring <- hsv(seq(0,0.9,length.out=length(unique(data.supra.plot2$Produit))),0.9,0.6)
       foo <- barchart(value ~ date, stack=TRUE, data=data.supra.plot2, groups=Produit, horiz=FALSE,
                       par.settings = list(superpose.polygon = list(col=coloring)),
                       auto.key=list(space="right", rectangles=TRUE, points=FALSE),
@@ -136,7 +136,7 @@ shinyServer(function(input, output) {
     }
     else
     {
-     coloring <- hsv(seq(0,1,length.out=length(unique(data.plot$Produit))),0.9,0.6)
+     coloring <- hsv(seq(0,0.9,length.out=length(unique(data.plot$Produit))),0.9,0.6)
      foo <- barchart(value ~ date, stack=TRUE, data=data.plot, groups=Produit, horiz=FALSE,
                       par.settings = list(superpose.polygon = list(col=coloring)),
                       auto.key=list(space="right", rectangles=TRUE, points=FALSE),
