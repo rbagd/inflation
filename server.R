@@ -47,13 +47,12 @@ parent <- with(coicop, rep(aggregate(Pond.2014, list(level=top), sum)$x,
                  aggregate(Pond.2014, list(level=top), length)$x))
 rel.sub.weights <- coicop$Pond.2014/parent
 
-#data.supra.weighted <- data.supra.unweighted * data[which(data$LVL == 0),'Pond.2014']/1000
-# data.top.weighted <- data.top.unweighted * top.weights/1000
+data.supra.weighted <- as.xts(t(apply(data.supra.unweighted, 1, "*", data[which(data$LVL == 0),'Pond.2014']/1000)))
 data.top.weighted <- as.xts(t(apply(data.top.unweighted, 1, "*", top.weights/1000)))
 data.sub.weighted <- as.xts(t(apply(data.sub.unweighted, 1, "*", rel.sub.weights)))
 
+data.supra.weighted <- melt.dataset(data.supra.weighted, imported.data)
 data.supra.unweighted <- melt.dataset(data.supra.unweighted, imported.data)
-#data.supra.weighted <- melt.dataset(data.supra.weighted, imported.data)
 
 data.top.unweighted <- melt.dataset(data.top.unweighted, imported.data)
 data.top.weighted <- melt.dataset(data.top.weighted, imported.data)
@@ -117,22 +116,38 @@ shinyServer(function(input, output) {
     if (input$lags.choice == "Indices") {lags.choice <- 0}
     
     data.plot <- subset(data.plot, date >= window.start.char & date <= window.end.char & Lag == lags.choice)
-    data.supra.plot <- subset(data.supra.unweighted, date >= window.start.char & date <= window.end.char & Lag == lags.choice)
-
+    
     x_labels <- gsub("-15", "", unique(as.character(data.plot$date)))
     if (length(x_labels) > 13) { x_labels[-seq(1,length(x_labels), 3)] <- "" }
 
-    foo <- barchart(value ~ date, stack=TRUE, data=data.plot, groups=Produit, horiz=FALSE,
-                par.settings = list(superpose.polygon = list(col=sample(colors(), 20))),
-                auto.key=list(space="right", rectangles=TRUE, points=FALSE),
-                scales=list(abbreviate=FALSE, tick.number=10, x=list(labels=x_labels)), ylab="Value", xlab="Month",
-                panel = function(y, x, ...){
-                  panel.grid(h = -1, v = -1, col = "gray", lty=2, lwd=1)
-                  panel.barchart(x, y, ...)
-                })
+    if(input$supra == TRUE)
+    {
+      data.supra.plot2 <- subset(data.supra.weighted, date >= window.start.char & date <= window.end.char & Lag == lags.choice
+                                 & !(Produit %in% c("Indice santé", "Indice des prix à la consommation")))
+      foo <- barchart(value ~ date, stack=TRUE, data=data.supra.plot2, groups=Produit, horiz=FALSE,
+                      par.settings = list(superpose.polygon = list(col=sample(colors(), 20))),
+                      auto.key=list(space="right", rectangles=TRUE, points=FALSE),
+                      scales=list(abbreviate=FALSE, tick.number=10, x=list(labels=x_labels)), ylab="Value", xlab="Month",
+                      panel = function(y, x, ...){
+                        panel.grid(h = -1, v = -1, col = "gray", lty=2, lwd=1)
+                        panel.barchart(x, y, ...)
+                      })
+    }
+    else
+    {
+      foo <- barchart(value ~ date, stack=TRUE, data=data.plot, groups=Produit, horiz=FALSE,
+                      par.settings = list(superpose.polygon = list(col=sample(colors(), 20))),
+                      auto.key=list(space="right", rectangles=TRUE, points=FALSE),
+                      scales=list(abbreviate=FALSE, tick.number=10, x=list(labels=x_labels)), ylab="Value", xlab="Month",
+                      panel = function(y, x, ...){
+                        panel.grid(h = -1, v = -1, col = "gray", lty=2, lwd=1)
+                        panel.barchart(x, y, ...)
+                      })      
+    }
     
     # The rest of the code plots the optional lines if those are selected
 
+    data.supra.plot <- subset(data.supra.unweighted, date >= window.start.char & date <= window.end.char & Lag == lags.choice)
     if (input$sante == TRUE)
     {
       sub.plot.sante <- subset(data.supra.plot, Produit == "Indice santé")

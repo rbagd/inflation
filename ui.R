@@ -8,6 +8,10 @@ shinyUI(pageWithSidebar(
   
   sidebarPanel(
     
+    checkboxInput(inputId = "supra",
+                  label = "Catégories générales",
+                  value = TRUE),
+    
     checkboxInput(inputId = "category.choice",
                 label = "Tous les produits",
                 value = TRUE),
