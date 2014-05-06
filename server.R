@@ -123,6 +123,7 @@ shinyServer(function(input, output) {
     if (length(x_labels) > 13) { x_labels[-seq(1,length(x_labels), 3)] <- "" }
 
     foo <- barchart(value ~ date, stack=TRUE, data=data.plot, groups=Produit, horiz=FALSE,
+                par.settings = list(superpose.polygon = list(col=sample(colors(), 20))),
                 auto.key=list(space="right", rectangles=TRUE, points=FALSE),
                 scales=list(abbreviate=FALSE, tick.number=10, x=list(labels=x_labels)), ylab="Value", xlab="Month",
                 panel = function(y, x, ...){
