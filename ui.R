@@ -35,7 +35,7 @@ shinyUI(pageWithSidebar(
     selectInput(inputId = "window.start.month",
                 label = "",
                 choices = c(1:12),
-                selected = 2),
+                selected = 4),
     
     selectInput(inputId = "window.end.year",
                 label = "Jusqu'à",
@@ -45,7 +45,7 @@ shinyUI(pageWithSidebar(
     selectInput(inputId = "window.end.month",
                 label = "",
                 choices = c(1:12),
-                selected = 2),
+                selected = 4),
     
     checkboxInput(inputId = "weighted",
                   label = strong("Données pondérées"),
