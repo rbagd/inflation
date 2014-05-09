@@ -7,14 +7,18 @@ shinyUI(pageWithSidebar(
   headerPanel("Prix en Belgique"),
   
   sidebarPanel(
+    radioButtons(inputId = "data.type",
+                 label = "Données à illustrer",
+                 choices = c("Catégories générales", "Toutes les catégories", "Sous-catégorie"),
+                 selected = "Catégories générales"),
     
-    checkboxInput(inputId = "supra",
-                  label = "Catégories générales",
-                  value = TRUE),
-    
-    checkboxInput(inputId = "category.choice",
-                label = "Tous les produits",
-                value = TRUE),
+#     checkboxInput(inputId = "supra",
+#                   label = "Catégories générales",
+#                   value = TRUE),
+#     
+#     checkboxInput(inputId = "category.choice",
+#                 label = "Tous les produits",
+#                 value = TRUE),
     
     uiOutput("subcategories"),
     
@@ -55,9 +59,9 @@ shinyUI(pageWithSidebar(
                   label = strong("Indice santé"),
                   value = FALSE),
     
-    checkboxInput(inputId = "pivot",
-                  label = strong("Dépassements de l'indice pivot"),
-                  value = FALSE),
+#    checkboxInput(inputId = "pivot",
+#                  label = strong("Dépassements de l'indice pivot"),
+#                  value = FALSE),
     
     p("Les quatre groupe ci-dessus sont des groupes de référence:"),
     

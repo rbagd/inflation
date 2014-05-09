@@ -84,8 +84,8 @@ shinyServer(function(input, output) {
     
     if (input$weighted == TRUE)
     {
-      if (input$category.choice == TRUE) { data.plot <- data.top.weighted }
-      else
+      if (input$data.type == "Toutes les catégories") { data.plot <- data.top.weighted }
+      else if (input$data.type == "Sous-catégorie")
       {
         tmp <- as.character(data[which(data$'Dénomination' == input$subcategories),'COICOP'])
         sub.categories <- as.character(data[which(substr(as.character(data$'COICOP'), 1, nchar(tmp)) == tmp ),
@@ -95,8 +95,8 @@ shinyServer(function(input, output) {
     }
     else
     {
-      if (input$category.choice == TRUE) { data.plot <- data.top.unweighted }
-      else
+      if (input$data.type == "Toutes les catégories") { data.plot <- data.top.unweighted }
+      else if (input$data.type == "Sous-catégorie")
       {
         tmp <- as.character(data[which(data$'Dénomination' == input$subcategories),'COICOP'])
         sub.categories <- as.character(data[which(substr(as.character(data$'COICOP'), 1, nchar(tmp)) == tmp ),
@@ -117,10 +117,10 @@ shinyServer(function(input, output) {
     
     data.plot <- subset(data.plot, date >= window.start.char & date <= window.end.char & Lag == lags.choice)
     
-    x_labels <- gsub("-15", "", unique(as.character(data.plot$date)))
-    if (length(x_labels) > 13) { x_labels[-seq(1,length(x_labels), 3)] <- "" }
+    x_labels <- gsub("-14", "", unique(as.character(data.plot$date)))
+    if (length(x_labels) > 13) { x_labels[-seq(1,length(x_labels), floor(length(x_labels)/12))] <- "" }
 
-    if(input$supra == TRUE)
+    if(input$data.type == "Catégories générales")
     {
       data.supra.plot2 <- subset(data.supra.weighted, date >= window.start.char & date <= window.end.char & Lag == lags.choice
                                  & !(Produit %in% c("Indice santé", "Indice des prix à la consommation")))
@@ -128,21 +128,23 @@ shinyServer(function(input, output) {
       foo <- barchart(value ~ date, stack=TRUE, data=data.supra.plot2, groups=Produit, horiz=FALSE,
                       par.settings = list(superpose.polygon = list(col=coloring)),
                       auto.key=list(space="right", rectangles=TRUE, points=FALSE),
-                      scales=list(abbreviate=FALSE, tick.number=10, x=list(labels=x_labels)), ylab="Value", xlab="Month",
+                      scales=list(abbreviate=FALSE, tick.number=10, x=list(labels=x_labels)),
+                      ylab="Value", xlab="Month",
                       panel = function(y, x, ...){
-                        panel.grid(h = -1, v = -1, col = "gray", lty=2, lwd=1)
+                        panel.grid(h = -10, v = -length(x_labels), col = "gray", lty=2, lwd=1)
                         panel.barchart(x, y, ...)
                       })
     }
     else
     {
-     coloring <- hsv(seq(0,0.9,length.out=length(unique(data.plot$Produit))),0.9,0.6)
+     coloring <- hsv(seq(0,0.9,length.out=length(unique(data.plot$Produit))),0.8,0.6)
      foo <- barchart(value ~ date, stack=TRUE, data=data.plot, groups=Produit, horiz=FALSE,
                       par.settings = list(superpose.polygon = list(col=coloring)),
                       auto.key=list(space="right", rectangles=TRUE, points=FALSE),
-                      scales=list(abbreviate=FALSE, tick.number=10, x=list(labels=x_labels)), ylab="Value", xlab="Month",
+                      scales=list(abbreviate=FALSE, tick.number=10, x=list(labels=x_labels, rot=30)),
+                      ylab="Value", xlab="Month",
                       panel = function(y, x, ...){
-                        panel.grid(h = -1, v = -1, col = "gray", lty=2, lwd=1)
+                        panel.grid(h = -10, v = -length(x_labels), col = "gray", lty=2, lwd=1)
                         panel.barchart(x, y, ...)
                       })      
     }
@@ -158,8 +160,17 @@ shinyServer(function(input, output) {
     if (input$ipc == TRUE)
     {
       sub.plot.ipc <- subset(data.supra.plot, Produit == "Indice des prix à la consommation")
-      foo <- foo + layer(panel.lines(y=value, x=1:length(value), col="steelblue", lwd=2), data=sub.plot.ipc)
+      foo <- foo + layer(panel.lines(y=value, x=1:length(value), col="steelblue", lwd=2,
+                                     auto.key=TRUE), data=sub.plot.ipc)
     }
+#     if (input$pivot == TRUE)
+#     {
+#       plot.depassement <- which((data.plot$date+1) %in% dates.depassement)
+#       print(plot.depassement)
+#       data.pivot <- cbind(date=data.plot[plot.depassement, "date"], value=rep(1, length(plot.depassement)))
+#       print(data.pivot)
+#       foo <- foo + layer(panel.lines(y=value, x=1:length(value)), data=data.pivot)
+#     }
     if (input$alimentaires == TRUE)
     {
       sub.plot.alim <- subset(data.supra.plot, Produit == "Alimentaires")
