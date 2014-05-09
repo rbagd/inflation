@@ -94,6 +94,8 @@ shinyServer(function(input, output) {
     
     dates <- unique(data.top.weighted$date[data.top.weighted$date >= window.start.char & data.top.weighted$date <= window.end.char])
     x_labels <- gsub("-14", "", dates)
+    x_labels <- gsub("-15", "", dates)
+    
     if (length(x_labels) > 13) { x_labels[-seq(1,length(x_labels), floor(length(x_labels)/12))] <- "" }
     
     if (input$data.type == "Catégories générales")
