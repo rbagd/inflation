@@ -16,7 +16,7 @@ source('functions.R')
 # performance-wise it's better to convert to CSV. There are some small changes for adjustment.
 
 imported.data <- read.csv("cpi.csv", na.strings=c(".", "(*)"), blank.lines.skip=TRUE,
-                          fileEncoding='latin1')
+                          fileEncoding='utf8')
 
 top.levels <- which(imported.data$LVL != 3 & imported.data$LVL != 4)
 data <- imported.data[top.levels,]
@@ -82,6 +82,37 @@ shinyServer(function(input, output) {
   
   output$testPlot <- renderPlot({
     
+    if (input$lags.choice == "Annuelle") {lags.choice <- 12}
+    if (input$lags.choice == "Mensuelle") {lags.choice <- 1}
+    #    if (input$lags.choice == "Indices") {lags.choice <- 0}
+    
+    window.start <- c(input$window.start.year,input$window.start.month)
+    window.start.char <- paste0(paste(window.start[1], window.start[2], sep="-"), "-15")
+    
+    window.end <- c(input$window.end.year, input$window.end.month)
+    window.end.char <- paste0(paste(window.end[1], window.end[2], sep="-"), "-15")
+    
+    dates <- unique(data.top.weighted$date[data.top.weighted$date >= window.start.char & data.top.weighted$date <= window.end.char])
+    x_labels <- gsub("-14", "", dates)
+    if (length(x_labels) > 13) { x_labels[-seq(1,length(x_labels), floor(length(x_labels)/12))] <- "" }
+    
+    if (input$data.type == "Catégories générales")
+    {
+      data.supra.plot <- subset(data.supra.weighted, date >= window.start.char & date <= window.end.char & Lag == lags.choice
+                                 & !(Produit %in% c("Indice santé", "Indice des prix à la consommation")))
+      coloring <- hsv(seq(0,0.9,length.out=length(unique(data.supra.plot$Produit))),0.9,0.6)
+      foo <- barchart(value ~ date, stack=TRUE, data=data.supra.plot, groups=Produit, horiz=FALSE,
+                      par.settings = list(superpose.polygon = list(col=coloring)),
+                      auto.key=list(space="right", rectangles=TRUE, points=FALSE),
+                      scales=list(abbreviate=FALSE, tick.number=10, x=list(labels=x_labels)),
+                      ylab="Value", xlab="Month",
+                      panel = function(y, x, ...){
+                        panel.grid(h = -10, v = -length(x_labels), col = "gray", lty=2, lwd=1)
+                        panel.barchart(x, y, ...)
+                      })
+    }
+    else
+    {
     if (input$weighted == TRUE)
     {
       if (input$data.type == "Toutes les catégories") { data.plot <- data.top.weighted }
@@ -104,39 +135,10 @@ shinyServer(function(input, output) {
         data.plot <- data.sub.weighted[which(data.sub.weighted$Produit %in% sub.categories),]
       }
     }
-    
-    window.start <- c(input$window.start.year,input$window.start.month)
-    window.start.char <- paste0(paste(window.start[1], window.start[2], sep="-"), "-15")
-    
-    window.end <- c(input$window.end.year, input$window.end.month)
-    window.end.char <- paste0(paste(window.end[1], window.end[2], sep="-"), "-15")
-    
-    if (input$lags.choice == "Annuelle") {lags.choice <- 12}
-    if (input$lags.choice == "Mensuelle") {lags.choice <- 1}
-#    if (input$lags.choice == "Indices") {lags.choice <- 0}
-    
     data.plot <- subset(data.plot, date >= window.start.char & date <= window.end.char & Lag == lags.choice)
-    
     x_labels <- gsub("-14", "", unique(as.character(data.plot$date)))
     if (length(x_labels) > 13) { x_labels[-seq(1,length(x_labels), floor(length(x_labels)/12))] <- "" }
 
-    if(input$data.type == "Catégories générales")
-    {
-      data.supra.plot2 <- subset(data.supra.weighted, date >= window.start.char & date <= window.end.char & Lag == lags.choice
-                                 & !(Produit %in% c("Indice santé", "Indice des prix à la consommation")))
-      coloring <- hsv(seq(0,0.9,length.out=length(unique(data.supra.plot2$Produit))),0.9,0.6)
-      foo <- barchart(value ~ date, stack=TRUE, data=data.supra.plot2, groups=Produit, horiz=FALSE,
-                      par.settings = list(superpose.polygon = list(col=coloring)),
-                      auto.key=list(space="right", rectangles=TRUE, points=FALSE),
-                      scales=list(abbreviate=FALSE, tick.number=10, x=list(labels=x_labels)),
-                      ylab="Value", xlab="Month",
-                      panel = function(y, x, ...){
-                        panel.grid(h = -10, v = -length(x_labels), col = "gray", lty=2, lwd=1)
-                        panel.barchart(x, y, ...)
-                      })
-    }
-    else
-    {
      coloring <- hsv(seq(0,0.9,length.out=length(unique(data.plot$Produit))),0.8,0.6)
      foo <- barchart(value ~ date, stack=TRUE, data=data.plot, groups=Produit, horiz=FALSE,
                       par.settings = list(superpose.polygon = list(col=coloring)),
@@ -151,7 +153,7 @@ shinyServer(function(input, output) {
     
     # The rest of the code plots the optional lines if those are selected
 
-    data.supra.plot <- subset(data.supra.unweighted, date >= window.start.char & date <= window.end.char & Lag == lags.choice)
+    data.supra.plot <- subset(data.supra.weighted, date >= window.start.char & date <= window.end.char & Lag == lags.choice)
     if (input$sante == TRUE)
     {
       sub.plot.sante <- subset(data.supra.plot, Produit == "Indice santé")
