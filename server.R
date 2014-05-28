@@ -153,7 +153,7 @@ shinyServer(function(input, output) {
     if (input$ipc == TRUE)
     {
       sub.plot.ipc <- subset(data.supra.plot, Produit == "Indice des prix à la consommation")
-      foo <- foo + layer(panel.lines(y=value, x=1:(length(value)+1), col="steelblue", lwd=2,
+      foo <- foo + layer(panel.lines(y=value, x=1:length(value), col="steelblue", lwd=2,
                                      auto.key=TRUE), data=sub.plot.ipc)
     }
 #     if (input$pivot == TRUE)
