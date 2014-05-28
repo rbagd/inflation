@@ -136,7 +136,7 @@ shinyServer(function(input, output) {
                       par.settings = list(superpose.polygon = list(col=coloring)),
                       auto.key=list(space="right", rectangles=TRUE, points=FALSE),
                       scales=list(abbreviate=FALSE, tick.number=10, x=list(labels=x_labels, rot=30)),
-                      ylab="Value", xlab="Month",
+                      ylab="Value (in %)", xlab="Month",
                       panel = function(y, x, ...){
                         panel.grid(h = -10, v = -length(x_labels), col = "gray", lty=2, lwd=1)
                         panel.barchart(x, y, ...)
