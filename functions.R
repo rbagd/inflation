@@ -2,11 +2,11 @@ lagged.dataset <- function(x, lags=c(1,12))
 {
   require(xts)
   x <- as.xts(x)
-  initial <- x
+	initial <- x
   column.names <- paste0("Lag0.", colnames(x))
   for (i in 1:length(lags))
   {
-    x <- cbind(x, diff(initial, lag=lags[i])/lag(initial,lags[i])*100)
+		x <- cbind(x, diff(initial, lag=lags[i])/lag(initial,lags[i])*100)
     column.names <- c(column.names, paste0(paste0("Lag",paste0(eval(parse(text=lags[i]))),"."), colnames(initial)))
   }
   colnames(x) <- gsub("X", "", column.names)

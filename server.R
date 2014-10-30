@@ -15,7 +15,7 @@ source('functions.R')
 # Previous two lines import Excel file as it is furnished by SPF Economie but importing is much slower, so
 # performance-wise it's better to convert to CSV. There are some small changes for adjustment.
 
-imported.data <- read.csv("cpi.csv", na.strings=c(".", "(*)"), blank.lines.skip=TRUE,
+imported.data <- read.csv("cpi.csv", na.strings=c(".", "(*)","#N/A"), blank.lines.skip=TRUE,
                           fileEncoding='utf8')
 
 top.levels <- which(imported.data$LVL != 3 & imported.data$LVL != 4)
