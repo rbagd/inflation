@@ -29,7 +29,7 @@ shinyUI(pageWithSidebar(
     
     selectInput(inputId = "window.start.year",
                 label = "A partir de",
-                choices = c(2006:2014),
+                choices = c(2006:2015),
                 selected = 2014),
     
     selectInput(inputId = "window.start.month",
@@ -39,7 +39,7 @@ shinyUI(pageWithSidebar(
     
     selectInput(inputId = "window.end.year",
                 label = "Jusqu'à",
-                choices = c(2006:2014),
+                choices = c(2006:2015),
                 selected = 2015),
     
     selectInput(inputId = "window.end.month",
