@@ -26,7 +26,7 @@ data <- imported.data[top.levels,]
 dutch_abbr <- c("mrt.", "mei.", "okt."); eng_abbr <- c("mar.", "may.", "oct.")
 for (i in 1:3) { colnames(data) <- gsub(dutch_abbr[i], eng_abbr[i], colnames(data)) }
 
-time.data <- data[,9:ncol(data)]
+time.data <- data[,10:ncol(data)]
 time.data <- as.xts(t(time.data), order.by=as.Date(paste0("15.", colnames(time.data)), format='%d.%b.%y'))
 
 data.supra <- time.data[,which(data$LVL == 0)]
