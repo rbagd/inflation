@@ -120,7 +120,11 @@ shinyUI(pageWithSidebar(
 		p("Si les données ne sont pas pondérées, alors la hauteur de chaque barre colorée représente la variation des prix du produit
 		  respectif. Dans ce cas-là, la hauteur (nette) de la barre totale n'a pas de signification particulière."),
       
-    p("EDIT: Suite à l'ajustement dont les prix en Belgique sont mesurés depuis janvier 2014, notamment l'introduction de l'indice chaîné, les méthodes de décomposition du total ne sont plus qu'approximatives. En particulier, deux effets complémentaires sont présents mais non illustrés ici. Premièrement, l'effet de l'ajustement des poids qui varient d'une année à l'autre. Deuxièmement, l'année de base qui diffère pour des observations de deux années différentes. La magnitude de ces effets n'est toutefois pas considérable dans la plupart des cas."))
+    p("EDIT: Suite à l'ajustement dont les prix en Belgique sont mesurés depuis janvier 2014, notamment l'introduction
+      de l'indice chaîné, les méthodes de décomposition du total ne sont plus qu'approximatives. En particulier, deux
+      effets complémentaires sont présents mais non illustrés ici. Premièrement, l'effet de l'ajustement des poids qui
+      varient d'une année à l'autre. Deuxièmement, l'année de base qui diffère pour des observations de deux années
+      différentes. La magnitude de ces effets n'est toutefois pas considérable dans la plupart des cas."))
                  )
             )
 ))
