@@ -37,17 +37,17 @@ data.supra.unweighted <- lagged.dataset(data.supra)
 data.top.unweighted <- lagged.dataset(data.top)
 data.sub.unweighted <- lagged.dataset(data.sub)
 
-top.weights <- data[which(data$LVL == 1), "Pond.2014"]
+top.weights <- data[which(data$LVL == 1), "Pond.2015"]
 
-coicop <- data[which(data$LVL == 2), c("COICOP", "Pond.2014")]
+coicop <- data[which(data$LVL == 2), c("COICOP", "Pond.2015")]
 coicop[,3:4] <- as.data.frame(t(simplify2array(strsplit(as.character(coicop$COICOP), ".", fixed=TRUE))))
 names(coicop)[3:4] <- c("top", "sub")
 
-parent <- with(coicop, rep(aggregate(Pond.2014, list(level=top), sum)$x,
-                 aggregate(Pond.2014, list(level=top), length)$x))
-rel.sub.weights <- coicop$Pond.2014/parent
+parent <- with(coicop, rep(aggregate(Pond.2015, list(level=top), sum)$x,
+                 aggregate(Pond.2015, list(level=top), length)$x))
+rel.sub.weights <- coicop$Pond.2015/parent
 
-data.supra.weighted <- as.xts(t(apply(data.supra.unweighted, 1, "*", data[which(data$LVL == 0),'Pond.2014']/1000)))
+data.supra.weighted <- as.xts(t(apply(data.supra.unweighted, 1, "*", data[which(data$LVL == 0),'Pond.2015']/1000)))
 data.top.weighted <- as.xts(t(apply(data.top.unweighted, 1, "*", top.weights/1000)))
 data.sub.weighted <- as.xts(t(apply(data.sub.unweighted, 1, "*", rel.sub.weights)))
 
@@ -60,7 +60,7 @@ data.top.weighted <- melt.dataset(data.top.weighted, imported.data)
 data.sub.unweighted <- melt.dataset(data.sub.unweighted, imported.data)
 data.sub.weighted <- melt.dataset(data.sub.weighted, imported.data)
 
-poids.table <- data[which(data$LVL == 1), c('Dénomination', 'Pond.2014')];
+poids.table <- data[which(data$LVL == 1), c('Dénomination', 'Pond.2015')];
 rownames(poids.table) <- NULL; colnames(poids.table) <- c("Categorie", "Poids")
 
 # This is small script to compute the date at which the pivot index was reached.
