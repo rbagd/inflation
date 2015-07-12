@@ -16,7 +16,7 @@ source('functions.R')
 # performance-wise it's better to convert to CSV. There are some small changes for adjustment.
 
 imported.data <- read.csv("cpi.csv", na.strings=c(".", "(*)","#N/A"), blank.lines.skip=TRUE,
-                          fileEncoding='utf8')
+                          fileEncoding='utf8', stringsAsFactors=FALSE)
 
 top.levels <- which(imported.data$LVL != 3 & imported.data$LVL != 4)
 data <- imported.data[top.levels,]
@@ -50,7 +50,6 @@ rel.sub.weights <- coicop$Pond.2015/parent
 data.supra.weighted <- as.xts(t(apply(data.supra.unweighted, 1, "*", data[which(data$LVL == 0),'Pond.2015']/1000)))
 data.top.weighted <- as.xts(t(apply(data.top.unweighted, 1, "*", top.weights/1000)))
 data.sub.weighted <- as.xts(t(apply(data.sub.unweighted, 1, "*", rel.sub.weights)))
-
 data.supra.weighted <- melt.dataset(data.supra.weighted, imported.data)
 data.supra.unweighted <- melt.dataset(data.supra.unweighted, imported.data)
 
